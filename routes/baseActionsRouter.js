@@ -38,8 +38,8 @@ router.get("/", function(req, res) {
 	promises.push(coreApi.getMempoolInfo());
 	promises.push(coreApi.getMiningInfo());
 
-	var chainTxStatsIntervals = [ 144, 144 * 7, 144 * 30, 144 * 265 ];
-	res.locals.chainTxStatsLabels = [ "24 hours", "1 week", "1 month", "1 year", "All time" ];
+	var chainTxStatsIntervals = [ 144/*, 144 * 7, 144 * 30, 144 * 265 */]; //TOOD: add this back when we have enough blocks
+	res.locals.chainTxStatsLabels = [ "24 hours"/*, "1 week", "1 month", "1 year", "All time" */];
 	for (var i = 0; i < chainTxStatsIntervals.length; i++) {
 		promises.push(coreApi.getChainTxStats(chainTxStatsIntervals[i]));
 	}

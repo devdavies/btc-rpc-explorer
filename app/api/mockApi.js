@@ -3,9 +3,9 @@ var config = require("../config.js");
 var coins = require("../coins.js");
 
 var SHA256 = require("crypto-js/sha256");
-var earliestBlockTime = 1231006505;
+var earliestBlockTime = 1529517603;
 var avgBlockTime = 200000;
-var currentBlockHeight = 1234567;
+var currentBlockHeight = 329;
 
 
 function getBlockchainInfo() {
