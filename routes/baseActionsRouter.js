@@ -38,8 +38,8 @@ router.get("/", function(req, res) {
 	promises.push(coreApi.getMempoolInfo());
 	promises.push(coreApi.getMiningInfo());
 
-	var chainTxStatsIntervals = [ 144/*, 144 * 7, 144 * 30, 144 * 265 */]; //TOOD: add this back when we have enough blocks
-	res.locals.chainTxStatsLabels = [ "24 hours"/*, "1 week", "1 month", "1 year", "All time" */];
+	var chainTxStatsIntervals = [ 144, 144 * 7, /*144 * 30, 144 * 265 */]; //TOOD: add this back when we have enough blocks
+	res.locals.chainTxStatsLabels = [ "24 hours", "1 week", /*"1 month", "1 year", "All time" */];
 	for (var i = 0; i < chainTxStatsIntervals.length; i++) {
 		promises.push(coreApi.getChainTxStats(chainTxStatsIntervals[i]));
 	}
@@ -525,6 +525,24 @@ router.get("/address/:address", function(req, res) {
 	});
 });
 
+router.get("/txoutsetinfo", function(req, res) {
+  client.command([{method:"gettxoutsetinfo"}], function(err, result, resHeaders) {
+    if(err) {
+      res.write(JSON.stringify(err, null, 4), function() {
+	  res.end();
+	});
+    } else if(result) {
+      res.write(JSON.stringify(result, null, 4), function() {
+	res.end();
+    	});
+    } else {
+      res.write(JSON.stringify({"Error":"No response from node"}, null, 4), function() {
+	res.end();
+	});
+    }
+  });
+});
+
 router.get("/rpc-terminal", function(req, res) {
 	if (!config.demoSite) {
 		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -599,16 +617,16 @@ router.post("/rpc-terminal", function(req, res) {
 });
 
 router.get("/rpc-browser", function(req, res) {
-	if (!config.demoSite) {
+	/*if (!config.demoSite) {
 		var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 		var match = config.ipWhitelistForRpcCommands.exec(ip);
 
 		if (!match) {
-			res.send("RPC Terminal / Browser may not be accessed from '" + ip + "'. This restriction can be modified in your config.js file.");
-
+		//	res.send("RPC Terminal / Browser may not be accessed from '" + ip + "'. This restriction can be modified in your config.js file.");
+			res.render("browser");
 			return;
 		}
-	}
+	}*/
 
 	coreApi.getHelp().then(function(result) {
 		res.locals.gethelp = result;

@@ -5,7 +5,7 @@ var currentCoin = "DVS";
 
 module.exports = {
 	cookiePassword: "0x000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
-	demoSite: true,
+	demoSite: false,
 	coin: currentCoin,
 
 	rpcBlacklist:[
@@ -29,7 +29,9 @@ module.exports = {
 		"walletpassphrase",
 		"walletpassphrasechange",
 		"verifychain",
-		"pruneblockchain"
+		"pruneblockchain",
+		"generate",
+		"generatetoaddress"
 	],
 
 	site: {
@@ -42,7 +44,7 @@ module.exports = {
 
 	// Edit "ipWhitelistForRpcCommands" regex to limit access to RPC Browser / Terminal to matching IPs
 	ipWhitelistForRpcCommands:/^(127\.0\.0\.1)?(\:\:1)?$/,
-
+        //ipWhitelistForRpcCommands:/^(\:\:1)/,
 	siteTools:[
 		{name:"Node Status", url:"/node-status", desc:"Summary of this node: version, network, uptime, etc.", fontawesome:"fas fa-broadcast-tower"},
 		{name:"Peers", url:"/peers", desc:"Detailed info about the peers connected to this node.", fontawesome:"fas fa-sitemap"},

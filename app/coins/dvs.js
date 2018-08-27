@@ -3,7 +3,7 @@ Decimal8 = Decimal.clone({ precision:8, rounding:8 });
 
 module.exports = {
 	name:"Davies",
-	logoUrl:"/img/logo/ltc.svg",
+	logoUrl:"/img/logo/dvs.png",
 	siteTitle:"Davies Explorer",
 	nodeTitle:"Davies Full Node",
 	nodeUrl:"https://daviescoin.io/",
@@ -110,11 +110,11 @@ module.exports = {
 		// }
 	],
 	exchangeRateData:{
-		jsonUrl:"https://api.coinmarketcap.com/v1/ticker/Litecoin/",
+		jsonUrl:"https://api.coinmarketcap.com/v2/ticker/",
 		exchangedCurrencyName:"usd",
 		responseBodySelectorFunction:function(responseBody) {
 			if (responseBody[0] && responseBody[0].price_usd) {
-				return responseBody[0].price_usd;
+				return 0;// responseBody[0].price_usd;
 			}
 			
 			return -1;
