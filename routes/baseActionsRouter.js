@@ -809,6 +809,24 @@ router.get("/address/:address", function(req, res, next) {
 	});
 });
 
+router.get("/txoutsetinfo", function(req, res) {
+  client.command([{method:"gettxoutsetinfo"}], function(err, result, resHeaders) {
+    if(err) {
+      res.write(JSON.stringify(err, null, 4), function() {
+	  		res.end();
+			});
+    } else if(result) {
+      res.write(JSON.stringify(result, null, 4), function() {
+				res.end();
+    	});
+    } else {
+      res.write(JSON.stringify({"Error":"No response from node"}, null, 4), function() {
+				res.end();
+			});
+    }
+  });
+});
+
 router.get("/rpc-terminal", function(req, res, next) {
 	if (!config.demoSite && !req.authenticated) {
 		res.send("RPC Terminal / Browser may not be accessed without logging-in. This restriction can be modified in your config.js file.");
