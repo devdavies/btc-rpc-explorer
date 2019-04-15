@@ -1,8 +1,49 @@
 var Decimal = require("decimal.js");
 Decimal8 = Decimal.clone({ precision:8, rounding:8 });
 
+var currencyUnits = [
+	{
+		type:"native",
+		name:"LTC",
+		multiplier:1,
+		default:true,
+		values:["", "ltc", "LTC"],
+		decimalPlaces:8
+	},
+	{
+		type:"native",
+		name:"lite",
+		multiplier:1000,
+		values:["lite"],
+		decimalPlaces:5
+	},
+	{
+		type:"native",
+		name:"photon",
+		multiplier:1000000,
+		values:["photon"],
+		decimalPlaces:2
+	},
+	{
+		type:"native",
+		name:"litoshi",
+		multiplier:100000000,
+		values:["litoshi", "lit"],
+		decimalPlaces:0
+	},
+	{
+		type:"exchanged",
+		name:"USD",
+		multiplier:"usd",
+		values:["usd"],
+		decimalPlaces:2,
+		symbol:"$"
+	},
+];
+
 module.exports = {
 	name:"Litecoin",
+	ticker:"LTC",
 	logoUrl:"/img/logo/ltc.svg",
 	siteTitle:"Litecoin Explorer",
 	nodeTitle:"Litecoin Full Node",
@@ -12,33 +53,11 @@ module.exports = {
 		"https://raw.githubusercontent.com/hashstream/pools/master/pools.json",
 	],
 	maxBlockWeight: 4000000,
-	currencyUnits:[
-		{
-			name:"LTC",
-			multiplier:1,
-			default:true,
-			values:["", "ltc", "LTC"],
-			decimalPlaces:8
-		},
-		{
-			name:"lite",
-			multiplier:1000,
-			values:["lite"],
-			decimalPlaces:5
-		},
-		{
-			name:"photon",
-			multiplier:1000000,
-			values:["photon"],
-			decimalPlaces:2
-		},
-		{
-			name:"litoshi",
-			multiplier:100000000,
-			values:["litoshi", "lit"],
-			decimalPlaces:0
-		}
-	],
+	targetBlockTimeSeconds: 150,
+	currencyUnits:currencyUnits,
+	currencyUnitsByName:{"LTC":currencyUnits[0], "lite":currencyUnits[1], "photon":currencyUnits[2], "litoshi":currencyUnits[3]},
+	baseCurrencyUnit:currencyUnits[3],
+	defaultCurrencyUnit:currencyUnits[0],
 	feeSatoshiPerByteBucketMaxima: [5, 10, 25, 50, 100, 150, 200, 250],
 	genesisBlockHash: "12a765e31ffd4059bada1e25190f6e98c99d9714d334efa41a195a7e7e04bfe2",
 	genesisCoinbaseTransactionId: "97ddfbbae6be97fd6cdf3e7ca13232a3afff2353e29badfab7f73011edd4ced9",
@@ -114,10 +133,10 @@ module.exports = {
 		exchangedCurrencyName:"usd",
 		responseBodySelectorFunction:function(responseBody) {
 			if (responseBody[0] && responseBody[0].price_usd) {
-				return responseBody[0].price_usd;
+				return {"usd":responseBody[0].price_usd};
 			}
 			
-			return -1;
+			return null;
 		}
 	},
 	blockRewardFunction:function(blockHeight) {

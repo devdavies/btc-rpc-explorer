@@ -14,7 +14,7 @@ block content
 	if (mempoolDetails)
 		- var txCount = mempoolDetails.txCount;
 
-		div(class="card")
+		div(class="card mb-3 shadow-sm")
 			div(class="card-header")
 				span(class="h6")
 					if (txCount == 1)
@@ -24,12 +24,12 @@ block content
 
 			div(class="card-body")
 				each tx, txIndex in mempoolDetails.transactions
-					div(class="xcard mb-3")
-						div(class="card-header")
+					div(class="xcard bg-light rounded shadow-sm mb-4")
+						div(class="card-header monospace")
 							if (tx && tx.txid)
 								strong ##{(txIndex + offset).toLocaleString()}
 								span  &ndash; 
-								a(href=("/tx/" + tx.txid), class="monospace") #{tx.txid}
+								a(href=("/tx/" + tx.txid)) #{tx.txid}
 									
 						div(class="card-body")
 							- var txInputs = mempoolDetails.txInputsByTransaction[tx.txid];

@@ -1,8 +1,57 @@
 var Decimal = require("decimal.js");
 Decimal8 = Decimal.clone({ precision:8, rounding:8 });
 
+var currencyUnits = [
+	{
+		type:"native",
+		name:"BTC",
+		multiplier:1,
+		default:true,
+		values:["", "btc", "BTC"],
+		decimalPlaces:8
+	},
+	{
+		type:"native",
+		name:"mBTC",
+		multiplier:1000,
+		values:["mbtc"],
+		decimalPlaces:5
+	},
+	{
+		type:"native",
+		name:"bits",
+		multiplier:1000000,
+		values:["bits"],
+		decimalPlaces:2
+	},
+	{
+		type:"native",
+		name:"sat",
+		multiplier:100000000,
+		values:["sat", "satoshi"],
+		decimalPlaces:0
+	},
+	{
+		type:"exchanged",
+		name:"USD",
+		multiplier:"usd",
+		values:["usd"],
+		decimalPlaces:2,
+		symbol:"$"
+	},
+	{
+		type:"exchanged",
+		name:"EUR",
+		multiplier:"eur",
+		values:["eur"],
+		decimalPlaces:2,
+		symbol:"€"
+	},
+];
+
 module.exports = {
 	name:"Bitcoin",
+	ticker:"BTC",
 	logoUrl:"/img/logo/btc.svg",
 	siteTitle:"Bitcoin Explorer",
 	siteDescriptionHtml:"<b>BTC Explorer</b> is <a href='https://github.com/janoside/btc-rpc-explorer). If you run your own [Bitcoin Full Node](https://bitcoin.org/en/full-node), **BTC Explorer** can easily run alongside it, communicating via RPC calls. See the project [ReadMe](https://github.com/janoside/btc-rpc-explorer) for a list of features and instructions for running.",
@@ -10,37 +59,15 @@ module.exports = {
 	nodeUrl:"https://bitcoin.org/en/full-node",
 	demoSiteUrl: "https://btc.chaintools.io",
 	miningPoolsConfigUrls:[
-		"https://raw.githubusercontent.com/blockchain/Blockchain-Known-Pools/master/pools.json",
-		"https://raw.githubusercontent.com/btccom/Blockchain-Known-Pools/master/pools.json"
+		"https://raw.githubusercontent.com/btccom/Blockchain-Known-Pools/master/pools.json",
+		"https://raw.githubusercontent.com/blockchain/Blockchain-Known-Pools/master/pools.json"
 	],
 	maxBlockWeight: 4000000,
-	currencyUnits:[
-		{
-			name:"BTC",
-			multiplier:1,
-			default:true,
-			values:["", "btc", "BTC"],
-			decimalPlaces:8
-		},
-		{
-			name:"mBTC",
-			multiplier:1000,
-			values:["mbtc"],
-			decimalPlaces:5
-		},
-		{
-			name:"bits",
-			multiplier:1000000,
-			values:["bits"],
-			decimalPlaces:2
-		},
-		{
-			name:"sat",
-			multiplier:100000000,
-			values:["sat", "satoshi"],
-			decimalPlaces:0
-		}
-	],
+	targetBlockTimeSeconds: 600,
+	currencyUnits:currencyUnits,
+	currencyUnitsByName:{"BTC":currencyUnits[0], "mBTC":currencyUnits[1], "bits":currencyUnits[2], "sat":currencyUnits[3]},
+	baseCurrencyUnit:currencyUnits[3],
+	defaultCurrencyUnit:currencyUnits[0],
 	feeSatoshiPerByteBucketMaxima: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 50, 75, 100, 150],
 	genesisBlockHash: "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
 	genesisCoinbaseTransactionId: "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
@@ -77,6 +104,7 @@ module.exports = {
 		"time": 1230988505,
 		"blocktime": 1230988505
 	},
+	genesisCoinbaseOutputAddressScripthash:"8b01df4e368ea28f8dc0423bcf7a4923e3a12d307c875e47a0cfbf90b5c39161",
 	historicalData: [
 		{
 			type: "blockheight",
@@ -100,6 +128,7 @@ module.exports = {
 			date: "2009-10-12",
 			txid: "7dff938918f07619abd38e4510890396b1cef4fbeca154fb7aafba8843295ea2",
 			summary: "First bitcoin traded for fiat currency.",
+			alertBodyHtml: "In this first-known BTC-to-fiat transaction, 5,050 BTC were exchanged for 5.02 USD, at an effective exchange rate of ~0.001 USD/BTC.",
 			referenceUrl: "https://twitter.com/marttimalmi/status/423455561703624704"
 		},
 		{
@@ -171,17 +200,36 @@ module.exports = {
 			summary: "Block reward lost",
 			alertBodyHtml: "This coinbase transaction completely fails to collect the block's mining reward. 12.5 BTC were lost.",
 			referenceUrl: "https://bitcoin.stackexchange.com/a/67012/3397"
+		},
+		{
+			type:"address",
+			date:"2011-12-03",
+			address:"1JryTePceSiWVpoNBU8SbwiT7J4ghzijzW",
+			summary:"Brainwallet address for 'Satoshi Nakamoto'",
+			referenceUrl:"https://twitter.com/MrHodl/status/1041448002005741568",
+			alertBodyHtml:"This address was generated from the SHA256 hash of 'Satoshi Nakamoto' as example of the 'brainwallet' concept."
 		}
 	],
 	exchangeRateData:{
-		jsonUrl:"https://api.coinmarketcap.com/v1/ticker/Bitcoin/",
-		exchangedCurrencyName:"usd",
+		jsonUrl:"https://api.coindesk.com/v1/bpi/currentprice.json",
 		responseBodySelectorFunction:function(responseBody) {
-			if (responseBody[0] && responseBody[0].price_usd) {
-				return responseBody[0].price_usd;
+			//console.log("Exchange Rate Response: " + JSON.stringify(responseBody));
+
+			var exchangedCurrencies = ["USD", "GBP", "EUR"];
+
+			if (responseBody.bpi) {
+				var exchangeRates = {};
+
+				for (var i = 0; i < exchangedCurrencies.length; i++) {
+					if (responseBody.bpi[exchangedCurrencies[i]]) {
+						exchangeRates[exchangedCurrencies[i].toLowerCase()] = responseBody.bpi[exchangedCurrencies[i]].rate_float;
+					}
+				}
+
+				return exchangeRates;
 			}
 			
-			return -1;
+			return null;
 		}
 	},
 	blockRewardFunction:function(blockHeight) {

@@ -2,19 +2,21 @@ doctype html
 html(lang="en")
 	head
 		meta(charset="utf-8")
+		meta(name="csrf-token", content=csrfToken)
 		meta(name="viewport", content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, shrink-to-fit=no")
 		
-		if (session.uiTheme && session.uiTheme == "dark")
-			link(rel="stylesheet", href="/css/bootstrap-dark.css")
+		link(rel="stylesheet", href="/css/fonts.css", integrity="sha384-XOmmu8j3C2MFUXRVGg8VWYNwlhEkSNb0rW/4e7bi3F56S6PejEmBUQDGZofQyjbL")
+		link(rel="stylesheet", href="/css/highlight.min.css", integrity="sha384-zhIsEafzyQWHSoMCQ4BfT8ZlRXQyIFwAHAJn32PNdsb8n6tVysGZSLpEEIvCskw4")
 
-			style.
-				hr { background-color: #555555; }
+
+		if (session.uiTheme && session.uiTheme == "dark")
+			link(rel="stylesheet", href="/css/bootstrap-dark.css", integrity="")
+			link(rel="stylesheet", href="/css/dark-touchups.css", integrity="")
+				
 		else
-			link(rel="stylesheet", href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css", integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4", crossorigin="anonymous")
+			link(rel="stylesheet", href="/css/bootstrap.min.css", integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T")
+
 		
-		link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Source+Code+Pro|Ubuntu:400,700")
-		link(rel="stylesheet", href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css")
-		link(rel="stylesheet", href="/css/radial-progress.css", type="text/css")
 		link(rel='stylesheet', href='/css/styling.css')
 
 		link(rel="icon", type="image/png", href=("/img/logo/" + config.coin.toLowerCase() + ".png"))
@@ -22,8 +24,8 @@ html(lang="en")
 		block headContent
 			title Explorer
 		
-	body
-		nav(class="navbar navbar-expand-lg navbar-dark bg-dark mb-4")
+	body(class="bg-dark")
+		nav(class="navbar navbar-expand-lg navbar-dark bg-dark")
 			div(class="container")
 				a(class="navbar-brand", href="/")
 					span
@@ -37,43 +39,56 @@ html(lang="en")
 				div(class="collapse navbar-collapse", id="navbarNav")
 					if (client)
 						ul(class="navbar-nav mr-auto")
-							li(class="nav-item")
-								a(href="/about", class="nav-link")
-									span About
+							if (false)
+								li(class="nav-item")
+									a(href="/about", class="nav-link")
+										span About
 
 							if (config.siteTools)
 								li(class="nav-item dropdown")
 									a(class="nav-link dropdown-toggle", href="javascript:void(0)", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") 
 										span  Tools
-									div(class="dropdown-menu", aria-label="Tools Items")
+									div(class="dropdown-menu shadow", aria-label="Tools Items")
 										each item in config.siteTools
 											a(class="dropdown-item", href=item.url)
 												i(class=item.fontawesome, style="width: 20px; margin-right: 10px;")
 												span  #{item.name}
 
-							if (config.headerDropdownLinks)
-								li(class="nav-item dropdown")
-									a(class="nav-link dropdown-toggle", href="javascript:void(0)", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") 
-										span  #{config.headerDropdownLinks.title}
-									div(class="dropdown-menu", aria-label=(config.headerDropdownLinks.title + " Items"))
-										each item in config.headerDropdownLinks.links
-											a(class="dropdown-item", href=item.url)
-												img(src=item.imgUrl, style="width: 24px; height: 24px; margin-right: 8px;", alt=item.name)
-												span  #{item.name}
+							if (config.site.header.dropdowns)
+								each dropdown, ddIndex in config.site.header.dropdowns
+									li(class="nav-item dropdown")
+										a(class="nav-link dropdown-toggle", href="javascript:void(0)", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") 
+											span  #{dropdown.title}
+										div(class="dropdown-menu shadow", aria-label=(dropdown.title + " Items"))
+											each dropdownLink in dropdown.links
+												a(class="dropdown-item", href=dropdownLink.url)
+													if (dropdownLink.imgUrl)
+														img(src=dropdownLink.imgUrl, style="width: 24px; height: 24px; margin-right: 8px;", alt=dropdownLink.name)
+													span  #{dropdownLink.name}
 
+							
+						form(method="post", action="/search", class="form-inline mr-3")
+							input(type="hidden", name="_csrf", value=csrfToken)
+							div(class="input-group input-group-sm")
+								input(type="text", class="form-control form-control-sm", name="query", placeholder="block height/hash, txid, address", value=(query))
+								div(class="input-group-append")
+									button(type="submit", class="btn btn-primary")
+										i(class="fas fa-search")
+
+						ul(class="navbar-nav")
 							li(class="nav-item dropdown")
 								a(class="nav-link dropdown-toggle", href="javascript:void(0)", id="navbarDropdown", role="button", data-toggle="dropdown", aria-haspopup="true", aria-expanded="false") 
-									i(class="fas fa-cog")
-									span  Settings
-								div(class="dropdown-menu", aria-labelledby="navbarDropdown")
+									i(class="fas fa-cog mr-1") 
+								div(class="dropdown-menu dropdown-menu-right shadow", aria-labelledby="navbarDropdown")
 									if (coinConfig.currencyUnits)
 										span(class="dropdown-header") Currency Units
 										each item in coinConfig.currencyUnits
-											a(class="dropdown-item", href=("/changeSetting?name=currencyFormatType&value=" + item.values[0]))
-												each valueName in item.values
-													if (currencyFormatType == valueName)
-														i(class="fas fa-check")
-												span  #{item.name}
+											if (item.type == "native" || (config.queryExchangeRates && !config.privacyMode))
+												a(class="dropdown-item", href=("/changeSetting?name=currencyFormatType&value=" + item.values[0]))
+													each valueName in item.values
+														if (currencyFormatType == valueName)
+															i(class="fas fa-check")
+													span  #{item.name}
 
 									span(class="dropdown-header") Theme
 									a(class="dropdown-item", href="/changeSetting?name=uiTheme&value=light")
@@ -84,87 +99,90 @@ html(lang="en")
 										if (session.uiTheme == "dark")
 											i(class="fas fa-check")
 										span  Dark
-
-						form(method="post", action="/search", class="form-inline")
-							div(class="input-group input-group-sm")
-								input(type="text", class="form-control form-control-sm", name="query", placeholder="block height/hash, txid, address", value=(query), style="width: 300px;")
-								div(class="input-group-append")
-									button(type="submit", class="btn btn-primary")
-										i(class="fas fa-search")
 		
-		if (host && port && !homepage)
-			div(id="sub-menu", class="container mb-4", style="margin-top: -1.0rem;")
+		if (host && port && !homepage && config.site.header.showToolsSubheader)
+			div(id="sub-menu", class="container mb-2 pt-2 d-lg-block d-none border-top", style="")
 				ul(class="nav")
 					each item, index in config.siteTools
 						li(class="nav-item")
-							a(href=item.url, class="nav-link")
+							a(href=item.url, class="nav-link text-white px-2 text-decoration-underline")
 								span #{item.name}
-					
+		
+		- var bodyBgColor = "#ffffff;";
+		if (session.uiTheme && session.uiTheme == "dark")
+			- bodyBgColor = "#0c0c0c;";
 
-				hr
+		div(class="pb-4 pt-3 pt-md-4", style=("background-color: " + bodyBgColor))
+			div(class="container px-2 px-sm-3")
+				if (userMessage)
+					div(class="alert", class=(userMessageType ? ("alert-"  + userMessageType) : "alert-warning"), role="alert")
+						span !{userMessage}
 				
-		div(class="container")
-			if (userMessage)
-				div(class="alert", class=(userMessageType ? ("alert-"  + userMessageType) : "alert-warning"), role="alert")
-					span !{userMessage}
-			
-			block content
+				block content
 
-			div(style="margin-bottom: 30px;")
+				div(style="margin-bottom: 30px;")
 
-			footer(class="footer bg-dark text-light pt-3 pb-1 px-3", style="margin-top: 50px;")
-				div(class="container")
-					div(class="row")
-						div(class="col-md-5")
-							dl
-								dt Source
-								dd
-									a(href="https://github.com/janoside/btc-rpc-explorer") github.com/janoside/btc-rpc-explorer
+				if (config.demoSite && !crawlerBot)
+					include ./includes/donation-modal.pug
 
+		footer(class="footer border-top border-primary bg-dark pt-3 pb-1 px-3 text-white", style="border-width: 5px !important;")
+			div(class="container")
+				div(class="row")
+					div(class="col-md-5")
+						dl
+							dt Source
+							dd
+								a(href="https://github.com/janoside/btc-rpc-explorer") github.com/janoside/btc-rpc-explorer
+								
+								if (global.sourcecodeProjectMetadata)
+									div(class="mt-2")
+										a(href="https://github.com/janoside/btc-rpc-explorer", class="btn btn-primary btn-sm mr-3 mb-1 text-decoration-none")
+											i(class="fas fa-star mr-2")
+											span(class="mr-2") Star 
+											span(class="badge bg-white text-dark") #{global.sourcecodeProjectMetadata.stargazers_count}
+
+										a(href="https://github.com/janoside/btc-rpc-explorer/fork", class="btn btn-primary btn-sm mr-3 mb-1 text-decoration-none")
+											i(class="fas fa-code-branch mr-2")
+											span(class="mr-2") Fork 
+											span(class="badge bg-white text-dark") #{global.sourcecodeProjectMetadata.forks_count}
+
+
+							if (sourcecodeVersion)
 								dt Running Version
 								dd
 									a(href=("https://github.com/janoside/btc-rpc-explorer/commit/" + sourcecodeVersion)) #{sourcecodeVersion}
 									span(style="color: #ccc;")  (#{sourcecodeDate})
 
-								if (config.demoSite)
-									dt Public Demos
-									dd
-										if (coinConfig.demoSiteUrl)
-											a(href=coinConfig.demoSiteUrl) #{coinConfig.demoSiteUrl}
-										else
-											a(href="https://btc-explorer.chaintools.io") https://btc-explorer.chaintools.io
-										
-										div(class="mt-2")
-											- var demoSiteCoins = ["BTC", "LTC"];
-											each demoSiteCoin in demoSiteCoins
-												a(href=coinConfigs[demoSiteCoin].demoSiteUrl, class="mr-2", title=coinConfigs[demoSiteCoin].siteTitle)
-													img(src=("/img/logo/" + demoSiteCoin.toLowerCase() + ".svg"), alt=demoSiteCoin.toLowerCase())
-
-											a(href="https://lightning.chaintools.io", class="mr-2", title="Lightning Explorer")
-												img(src=("/img/logo/lightning.svg"), style="width: 32px; height: 32px;", alt="lightning")
-
-						div(class="col-md-7 text-md-right")
-							dl
-								dt Support Development of #{coinConfig.siteTitle}
+							if (config.demoSite)
+								dt Public Demos
 								dd
-									div(class="text-md-right text-center")
-										each coin, index in config.donationAddresses.coins
-											div(style="display: inline-block;", class="text-center mb-3", class=(index > 0 ? "ml-md-3" : false))
-												img(src=donationAddressQrCodeUrls[coin], alt=config.donationAddresses[coin].address, style="border: solid 1px #ccc;")
-												br
-												if (config.donationAddresses[coin].urlPrefix)
-													span #{coin}: 
-													a(href=(config.donationAddresses[coin].urlPrefix + config.donationAddresses[coin].address)) #{config.donationAddresses[coin].address.substring(0, 10)}...
-												else
-													span #{coin}
-		
-		script(src="https://code.jquery.com/jquery-3.3.1.min.js", integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=", crossorigin="anonymous")
-		script(src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js", integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ", crossorigin="anonymous")
-		script(src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js", integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb", crossorigin="anonymous")
-		script(src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js", integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm", crossorigin="anonymous")
-		script(defer, src="https://use.fontawesome.com/releases/v5.2.0/js/all.js", integrity="sha384-4oV5EgaV02iISL2ban6c/RmotsABqE4yZxZLcYMAdG7FAPsyHYAPpywE9PJo+Khy", crossorigin="anonymous")
+									if (coinConfig.demoSiteUrl)
+										a(href=coinConfig.demoSiteUrl) #{coinConfig.demoSiteUrl}
+									else
+										a(href="https://btc-explorer.chaintools.io") https://btc-explorer.chaintools.io
+									
+									div(class="mt-2")
+										- var demoSiteCoins = ["BTC", "LTC"];
+										each demoSiteCoin in demoSiteCoins
+											a(href=coinConfigs[demoSiteCoin].demoSiteUrl, class="mr-2", title=coinConfigs[demoSiteCoin].siteTitle)
+												img(src=("/img/logo/" + demoSiteCoin.toLowerCase() + ".svg"), alt=demoSiteCoin.toLowerCase())
 
-		script(src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js")
+										a(href="https://lnd-admin.chaintools.io", class="mr-2", title="LND Admin")
+											img(src=("/img/logo/lnd-admin.png"), style="width: 32px; height: 32px;", alt="LND Admin")
+
+					div(class="col-md-7 text-md-right")
+						dl
+							dd
+								button.btn.btn-primary(type="button", class="btn btn-primary", data-toggle="modal", data-target="#exampleModalCenter")
+									i(class="fas fa-heart mr-2")
+									span Support Development
+		
+		script(src="/js/jquery.min.js", integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=")
+		script(src="/js/popper.min.js", integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut")
+		script(src="/js/bootstrap.min.js", integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM")
+		script(defer, src="/js/fontawesome.min.js", integrity="sha384-eVEQC9zshBn0rFj4+TU78eNA19HMNigMviK/PU/FFjLXqa/GKPgX58rvt5Z8PLs7")
+
+		script(src="/js/highlight.min.js", integrity="sha384-xLrpH5gNLD6HMLgeDH1/p4FXigQ8T9mgNm+EKtCSXL0OJ5i1bnSi57dnwFuUMM9/")
 		
 		script.
 			$(document).ready(function() {
@@ -175,9 +193,9 @@ html(lang="en")
 			hljs.initHighlightingOnLoad();
 
 		if (config.credentials.sentryUrl && config.credentials.sentryUrl.length > 0)
-			script(src="https://cdn.ravenjs.com/3.26.4/raven.min.js", crossorigin="anonymous")
+			script(src="/js/sentry.min.js", integrity="sha384-da/Bo2Ah6Uw3mlhl6VINMblg2SyGbSnULKrukse3P5D9PTJi4np9HoKvR19D7zOL", crossorigin="anonymous")
 			script.
-				Raven.config("#{config.credentials.sentryUrl}").install();
+				Sentry.init({ dsn: '#{config.credentials.sentryUrl}' });
 
 		if (config.credentials.googleAnalyticsTrackingId && config.credentials.googleAnalyticsTrackingId.trim().length > 0)
 			script(async, src=("https://www.googletagmanager.com/gtag/js?id=" + config.credentials.googleAnalyticsTrackingId))
